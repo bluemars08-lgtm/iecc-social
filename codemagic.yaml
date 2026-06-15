@@ -24,12 +24,17 @@ workflows:
       - name: Set up code signing (creates distribution cert + profile via API key)
         script: |
           set -e
+          if [ -z "$CERTIFICATE_PRIVATE_KEY" ]; then
+            echo "ERROR: CERTIFICATE_PRIVATE_KEY is empty."
+            echo "Add it in Codemagic as a SECURE variable, group name exactly: appstore"
+            exit 1
+          fi
           keychain initialize
           # Use a STABLE private key (stored in Codemagic). The first build creates
           # one distribution certificate for this key; later builds reuse it.
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
-            --certificate-key="$CERTIFICATE_PRIVATE_KEY" \
+            --certificate-key @env:CERTIFICATE_PRIVATE_KEY \
             --create
           keychain add-certificates
           # Only the main app project — not the pods' xcodeproj under node_modules
