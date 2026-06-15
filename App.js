@@ -13,6 +13,23 @@ import * as api from './api';
 
 WebBrowser.maybeCompleteAuthSession();
 
+/* ===== Crash guard (shows the error instead of a black screen) ===== */
+function ErrorView({ error }) {
+  return (
+    <View style={{ flex: 1, backgroundColor: '#0B0B0B', padding: 24, justifyContent: 'center' }}>
+      <Text style={{ color: '#C0D328', fontSize: 18, fontWeight: '700', marginBottom: 10, textAlign: 'center' }}>حصل خطأ في التطبيق</Text>
+      <Text selectable style={{ color: '#F4F4F4', fontSize: 12, lineHeight: 18, textAlign: 'center' }}>
+        {String((error && error.message) || error)}
+      </Text>
+    </View>
+  );
+}
+class ErrorBoundary extends React.Component {
+  constructor(p) { super(p); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() { return this.state.error ? <ErrorView error={this.state.error} /> : this.props.children; }
+}
+
 /* ===== IECC design tokens ===== */
 const C = {
   bg: '#0B0B0B', card: '#161616', inset: '#0B0B0B', border: '#262626',
@@ -525,7 +542,7 @@ const TABS = [
   { key: 'plans', label: 'الاشتراك', icon: 'star', Screen: PlansScreen },
 ];
 
-export default function App() {
+function App() {
   const [booting, setBooting] = useState(true);
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState('home');
@@ -533,9 +550,21 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const t = await api.getToken();
-      if (t) { try { const r = await api.me(); setUser(r.user); } catch { await api.logout(); } }
-      setBooting(false);
+      try {
+        const t = await api.getToken();
+        if (t) {
+          // Don't let a slow/hanging request keep the splash forever.
+          const r = await Promise.race([
+            api.me(),
+            new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000)),
+          ]);
+          setUser(r.user);
+        }
+      } catch {
+        try { await api.logout(); } catch {}
+      } finally {
+        setBooting(false);
+      }
     })();
   }, []);
 
@@ -588,6 +617,24 @@ export default function App() {
         </View>
       )}
     </SafeAreaView>
+  );
+}
+
+/* ===== Root: crash guard wrapper (default export) ===== */
+export default function Root() {
+  const [fatal, setFatal] = useState(null);
+  useEffect(() => {
+    const g = global.ErrorUtils;
+    if (!g || !g.setGlobalHandler) return;
+    const prev = g.getGlobalHandler && g.getGlobalHandler();
+    g.setGlobalHandler((e) => { setFatal(e); if (prev) prev(e, false); });
+    return () => { if (prev) g.setGlobalHandler(prev); };
+  }, []);
+  if (fatal) return <ErrorView error={fatal} />;
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   );
 }
 

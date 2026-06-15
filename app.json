@@ -10,7 +10,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.iecc.social",
-      "buildNumber": "1"
+      "buildNumber": "2"
     },
     "android": {
       "package": "com.iecc.social",
@@ -27,7 +27,11 @@
     "plugins": [
       "expo-secure-store",
       "expo-web-browser",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        { "photosPermission": "نحتاج إذن الوصول للصور عشان ترفق صورة مع منشورك." }
+      ]
     ]
   }
 }
