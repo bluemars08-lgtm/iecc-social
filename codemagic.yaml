@@ -1,0 +1,39 @@
+workflows:
+  ios-testflight:
+    name: IECC Social — iOS TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      # In Codemagic: Team settings → Integrations → App Store Connect → add your
+      # API key, then put its NAME here (replace "IECC ASC Key").
+      app_store_connect: IECC ASC Key
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.iecc.social
+      node: 20.18.0
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install npm dependencies
+        script: npm install
+      - name: Expo prebuild (generate native iOS project)
+        script: npx expo prebuild --platform ios --clean --no-install
+      - name: Install CocoaPods
+        script: cd ios && pod install
+      - name: Set up code signing (fetch profiles)
+        script: xcode-project use-profiles
+      - name: Build IPA
+        script: |
+          set -e
+          WS=$(ls -d ios/*.xcworkspace | head -1)
+          SCHEME=$(basename "$WS" .xcworkspace)
+          echo "Building workspace=$WS scheme=$SCHEME"
+          xcode-project build-ipa --workspace "$WS" --scheme "$SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
