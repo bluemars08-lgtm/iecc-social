@@ -23,6 +23,11 @@ workflows:
         script: |
           set -e
           keychain initialize
+          # Generate a NEW distribution certificate together with its private key
+          # (so Codemagic owns the key). Skip if the account already has one we
+          # can use. Then create/fetch the App Store provisioning profile.
+          app-store-connect create-certificate --type IOS_DISTRIBUTION --save || true
+          keychain add-certificates
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
