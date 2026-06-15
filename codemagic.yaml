@@ -4,9 +4,8 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 60
     integrations:
-      # In Codemagic: Team settings → Integrations → App Store Connect → add your
-      # API key, then put its NAME here (replace "IECC ASC Key").
-      app_store_connect: IECC ASC Key
+      # Name of the App Store Connect API key integration set in Codemagic.
+      app_store_connect: Codemagic CI4
     environment:
       vars:
         BUNDLE_ID: "com.iecc.social"
