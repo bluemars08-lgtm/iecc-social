@@ -7,6 +7,8 @@ workflows:
       # Name of the App Store Connect API key integration set in Codemagic.
       app_store_connect: Codemagic CI4
     environment:
+      groups:
+        - appstore            # must contain the secure var CERTIFICATE_PRIVATE_KEY
       vars:
         BUNDLE_ID: "com.iecc.social"
       node: 20.18.0
@@ -23,12 +25,11 @@ workflows:
         script: |
           set -e
           keychain initialize
-          # Generate a private key, then let Codemagic create a NEW distribution
-          # certificate (using that key) + the App Store provisioning profile.
-          openssl genrsa -out /tmp/ios_dist_key.pem 2048
+          # Use a STABLE private key (stored in Codemagic). The first build creates
+          # one distribution certificate for this key; later builds reuse it.
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
-            --certificate-key=@file:/tmp/ios_dist_key.pem \
+            --certificate-key="$CERTIFICATE_PRIVATE_KEY" \
             --create
           keychain add-certificates
           # Only the main app project — not the pods' xcodeproj under node_modules
