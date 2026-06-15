@@ -52,4 +52,7 @@ workflows:
     publishing:
       app_store_connect:
         auth: integration
-        submit_to_testflight: true
+        # Upload to App Store Connect for INTERNAL TestFlight testing (no Apple
+        # beta review needed). External testing needs test info filled in ASC,
+        # so we don't auto-submit to it here.
+        submit_to_testflight: false
