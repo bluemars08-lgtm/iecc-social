@@ -8,9 +8,8 @@ workflows:
       # API key, then put its NAME here (replace "IECC ASC Key").
       app_store_connect: IECC ASC Key
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.iecc.social
+      vars:
+        BUNDLE_ID: "com.iecc.social"
       node: 20.18.0
       xcode: latest
       cocoapods: default
@@ -21,8 +20,15 @@ workflows:
         script: npx expo prebuild --platform ios --clean --no-install
       - name: Install CocoaPods
         script: cd ios && pod install
-      - name: Set up code signing (fetch profiles)
-        script: xcode-project use-profiles
+      - name: Set up code signing (creates distribution cert + profile via API key)
+        script: |
+          set -e
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
       - name: Build IPA
         script: |
           set -e
