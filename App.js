@@ -10,7 +10,7 @@ import * as Linking from 'expo-linking';
 import * as ImagePicker from 'expo-image-picker';
 import * as api from './api';
 
-WebBrowser.maybeCompleteAuthSession();
+try { WebBrowser.maybeCompleteAuthSession(); } catch (e) {}
 
 /* ===== Crash guard (shows the error instead of a black screen) ===== */
 function ErrorView({ error }) {
