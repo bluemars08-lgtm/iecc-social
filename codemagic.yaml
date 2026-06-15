@@ -31,7 +31,8 @@ workflows:
             --certificate-key=@file:/tmp/ios_dist_key.pem \
             --create
           keychain add-certificates
-          xcode-project use-profiles
+          # Only the main app project — not the pods' xcodeproj under node_modules
+          xcode-project use-profiles --project "ios/*.xcodeproj"
       - name: Build IPA
         script: |
           set -e
