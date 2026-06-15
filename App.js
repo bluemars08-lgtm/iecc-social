@@ -8,7 +8,6 @@ import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import * as ImagePicker from 'expo-image-picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import * as api from './api';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -44,6 +43,7 @@ const PLAT = {
 };
 const pad2 = (n) => (n < 10 ? '0' + n : '' + n);
 const fmtDateTime = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+const tomorrowAt = (h) => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(h, 0, 0, 0); return d; };
 
 function Card({ children, style }) { return <View style={[s.card, style]}>{children}</View>; }
 function H1({ children }) { return <Text style={s.h1}>{children}</Text>; }
@@ -258,16 +258,22 @@ function ComposeScreen({ user }) {
       {showPicker && (
         <Card style={{ marginTop: 12 }}>
           <Text style={s.cardTitle}>اختر وقت النشر</Text>
-          <View style={{ alignItems: 'center' }}>
-            <DateTimePicker
-              value={schedAt}
-              mode="datetime"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              themeVariant="dark"
-              onChange={(e, d) => { if (d) setSchedAt(d); if (Platform.OS === 'android') setShowPicker(true); }}
-            />
+          <View style={s.chipsWrap}>
+            {[
+              { label: 'بعد ساعة', d: new Date(Date.now() + 3600 * 1000) },
+              { label: 'بعد ٣ ساعات', d: new Date(Date.now() + 3 * 3600 * 1000) },
+              { label: 'بكرة ١٢ ظهراً', d: tomorrowAt(12) },
+              { label: 'بكرة ٧ مساءً', d: tomorrowAt(19) },
+            ].map((o, i) => {
+              const sel = fmtDateTime(o.d) === fmtDateTime(schedAt);
+              return (
+                <TouchableOpacity key={i} style={[s.pchip, sel && s.pchipOn]} onPress={() => setSchedAt(o.d)}>
+                  <Text style={s.pchipText}>{o.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-          <Text style={{ color: C.mute, fontSize: 12, textAlign: 'center', marginVertical: 8 }}>{fmtDateTime(schedAt)}</Text>
+          <Text style={{ color: C.mute, fontSize: 12, textAlign: 'center', marginVertical: 8 }}>الموعد: {fmtDateTime(schedAt)}</Text>
           <TouchableOpacity style={s.subscribeBtn} onPress={doSchedule} disabled={scheduling}>
             {scheduling ? <ActivityIndicator color={C.dark} /> : <Text style={s.subscribeText}>أكّد الجدولة</Text>}
           </TouchableOpacity>
