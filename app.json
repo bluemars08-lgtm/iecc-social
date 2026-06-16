@@ -10,7 +10,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.iecc.social",
-      "buildNumber": "5"
+      "buildNumber": "6"
     },
     "android": {
       "package": "com.iecc.social",
@@ -29,8 +29,11 @@
       "expo-web-browser",
       [
         "expo-image-picker",
-        { "photosPermission": "نحتاج إذن الوصول للصور عشان ترفق صورة مع منشورك." }
-      ]
+        {
+          "photosPermission": "نحتاج إذن الوصول للصور عشان ترفق صورة مع منشورك."
+        }
+      ],
+      "expo-font"
     ]
   }
 }
